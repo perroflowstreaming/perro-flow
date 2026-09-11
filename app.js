@@ -1,60 +1,143 @@
-const STORE={name:"Perro Flow",whatsapp:"51999999999"};
-const PRODUCTS=[
-{id:1,name:"Netflix",cat:"Streaming",price:10.50,period:"30 días",desc:"Perfil premium para disfrutar de tus contenidos.",icon:"N",accent:"#ff1838"},
-{id:2,name:"Prime Video",cat:"Streaming",price:8,period:"30 días",desc:"Series, películas y entretenimiento.",icon:"P",accent:"#00a8e1"},
-{id:3,name:"Disney+",cat:"Streaming",price:8.50,period:"30 días",desc:"Entretenimiento para toda la familia.",icon:"D+",accent:"#2588ff"},
-{id:4,name:"HBO Max",cat:"Streaming",price:10,period:"30 días",desc:"Series, películas y contenido premium.",icon:"M",accent:"#7650ff"},
-{id:5,name:"Spotify Premium",cat:"Música",price:8,period:"30 días",desc:"Música sin interrupciones y más.",icon:"S",accent:"#20d66b"},
-{id:6,name:"Canva Premium",cat:"Software",price:7,period:"30 días",desc:"Herramientas premium para tus diseños.",icon:"C",accent:"#31d5cf"},
-{id:7,name:"Gaming Pass",cat:"Gaming",price:12,period:"30 días",desc:"Una opción digital para tus sesiones de gaming.",icon:"G",accent:"#a05cff"},
-{id:8,name:"YouTube Premium",cat:"Streaming",price:9,period:"30 días",desc:"Contenido y experiencia premium.",icon:"▶",accent:"#ff2538"}
-];
-let category="Todos";
-let balance=Number(localStorage.getItem("pf_balance")||0);
-let user=JSON.parse(localStorage.getItem("pf_user")||"null");
-const $=s=>document.querySelector(s);
-function money(n){return `S/ ${n.toFixed(2)}`}
-function updateBalance(){["#navBalance","#bigBalance"].forEach(s=>$(s).textContent=money(balance))}
-function save(){localStorage.setItem("pf_balance",balance.toFixed(2)); if(user)localStorage.setItem("pf_user",JSON.stringify(user)); updateBalance()}
-function renderCats(){
- const cats=["Todos","Streaming","Música","Gaming","Software"];
- $("#cats").innerHTML=cats.map(c=>`<button class="cat ${c===category?"active":""}" data-cat="${c}">${c==="Todos"?"✦":c==="Streaming"?"📺":c==="Música"?"🎵":c==="Gaming"?"🎮":"💻"} ${c}</button>`).join("");
- document.querySelectorAll(".cat").forEach(b=>b.onclick=()=>{category=b.dataset.cat;renderCats();renderProducts()});
+const SUPABASE_URL = "https://loacrejdpgrdocbk gmap.supabase.co".replace(" ", "");
+const SUPABASE_KEY = "sb_publishable_H6VCKhEcK2_lFQNNsxqQTQ_iIpuFX9g";
+const WA = "51999999999";
+const KEY = "perroflow_v3";
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let products = [];
+let categories = [];
+let active = "Todos";
+let imageData = "";
+let editingId = "";
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+const money = n => "S/ " + Number(n || 0).toFixed(2);
+
+function toUi(p){
+  const cat = categories.find(c => c.identificación === p["ID de categoría"] || c.id === p["ID de categoría"]);
+  return {
+    id: p.identificación,
+    sku: p.sku,
+    name: p.nombre,
+    price: p.precio,
+    duration: p.duración,
+    category: cat?.nombre || "Otros",
+    categoryId: p["ID de categoría"],
+    availability: p.disponibilidad,
+    renewable: p.renovable,
+    featured: p.presentado,
+    purchaseLimit: p.límite_de_compra,
+    image: p["URL de la imagen"],
+    short: p.descripción_corta,
+    full: p.descripción,
+    terms: p.términos,
+    published: p.publicado
+  };
 }
-function renderProducts(){
- const q=$("#search").value.toLowerCase();
- const list=PRODUCTS.filter(p=>(category==="Todos"||p.cat===category)&&`${p.name} ${p.cat} ${p.desc}`.toLowerCase().includes(q));
- $("#products").innerHTML=list.map(p=>`<article class="product"><div class="art" style="--a:${p.accent}"><span class="tag">${p.cat}</span>${p.icon}</div><div class="pbody"><h3>${p.name}</h3><p>${p.desc}</p><div class="pbottom"><div class="price">${money(p.price)} <small>/ ${p.period}</small></div><button class="buy" data-id="${p.id}">Comprar</button></div></div></article>`).join("");
- document.querySelectorAll(".buy").forEach(b=>b.onclick=()=>buy(Number(b.dataset.id)));
+
+async function loadCategories(){
+  const {data,error}=await sb.from("categorías").select("*").order("nombre");
+  if(error){ console.error(error); return; }
+  categories=data||[];
+  const sel=$("category");
+  if(sel){
+    const current=sel.value;
+    sel.innerHTML=categories.map(c=>`<option value="${esc(c.identificación)}">${esc(c.nombre)}</option>`).join("");
+    if(current && [...sel.options].some(o=>o.value===current)) sel.value=current;
+  }
 }
-function openModal(content){$("#modalContent").innerHTML=content;$("#modal").classList.add("show")}
-function buy(id){
- const p=PRODUCTS.find(x=>x.id===id);
- openModal(`<label>🛒 COMPRA</label><h2>${p.name}</h2><p>${p.desc}</p><div class="status">Precio: <b>${money(p.price)}</b> · ${p.period}<br>Saldo disponible: <b>${money(balance)}</b></div><div class="modal-actions"><button class="btn primary full" id="confirmBuy">Comprar con mi saldo</button><button class="btn dark full" id="buyWA">Consultar por WhatsApp</button></div>`);
- $("#confirmBuy").onclick=()=>{
-   if(balance<p.price){alert("Saldo insuficiente. Recarga tu billetera desde S/ 3.00.");return}
-   balance-=p.price;save();
-   openModal(`<label>✅ COMPRA REGISTRADA</label><h2>¡Pedido recibido!</h2><p>Se descontaron <b>${money(p.price)}</b> de tu saldo. Ahora puedes coordinar la entrega del servicio.</p><div class="status">Nuevo saldo: <b>${money(balance)}</b></div><div class="modal-actions"><button class="btn primary full" id="done">Listo</button></div>`);
-   $("#done").onclick=()=>$("#modal").classList.remove("show");
- };
- $("#buyWA").onclick=()=>window.open(`https://wa.me/${STORE.whatsapp}?text=${encodeURIComponent("Hola Perro Flow, quiero información sobre "+p.name+".")}`,"_blank");
+
+async function loadProducts(){
+  const {data,error}=await sb.from("productos").select("*").eq("publicado",true).order("creado_en",{ascending:false});
+  if(error){ console.error(error); $("grid").innerHTML="<p class='note'>No se pudieron cargar los productos. Revisa la conexión con Supabase.</p>"; return; }
+  products=(data||[]).map(toUi);
+  render();
 }
-function auth(){
- openModal(`<label>👤 CUENTA PERRO FLOW</label><h2>${user?"Mi cuenta":"Crear cuenta / Iniciar sesión"}</h2>
- ${user?`<p>Hola, <b>${user.name}</b> 👋</p><div class="status">Saldo actual: <b>${money(balance)}</b></div><div class="modal-actions"><button class="btn primary full" id="accRecharge">💳 Recargar saldo</button><button class="btn dark full" id="logout">Cerrar sesión</button></div>`:
- `<div class="field"><label>NOMBRE</label><input id="name" placeholder="Tu nombre"></div><div class="field"><label>CELULAR O CORREO</label><input id="contact" placeholder="Tu celular o correo"></div><div class="field"><label>CONTRASEÑA</label><input id="pass" type="password" placeholder="Contraseña"></div><div class="modal-actions"><button class="btn primary full" id="register">Crear cuenta</button></div><p>Esta versión gratuita funciona como demo local. Para cuentas reales multiusuario se conecta después a una base de datos.</p>`}`);
- if(user){$("#accRecharge").onclick=showRecharge;$("#logout").onclick=()=>{user=null;localStorage.removeItem("pf_user");$("#modal").classList.remove("show")}}
- else $("#register").onclick=()=>{const n=$("#name").value.trim();if(!n)return alert("Escribe tu nombre.");user={name:n,contact:$("#contact").value};save();auth()}
+
+async function loadAdminProducts(){
+  const {data,error}=await sb.from("productos").select("*").order("creado_en",{ascending:false});
+  if(error){ $("adminList").innerHTML="<p class='note'>No se pudo cargar el panel. Inicia sesión como administradora.</p>"; return; }
+  products=(data||[]).map(toUi);
+  renderAdmin();
 }
-function showRecharge(){
- openModal(`<label>💳 RECARGA AUTOMÁTICA</label><h2>Recarga desde S/ 3.00</h2><p>Realiza tu transferencia y luego valida el movimiento.</p><div class="status">Canal de recarga: <b>Yape / BCP</b></div><div class="qrbox">COLOCA AQUÍ<br>TU QR DE YAPE</div><div class="field"><label>TITULAR</label><input value="TU NOMBRE" readonly></div><div class="field"><label>CELULAR</label><input value="+51 XXX XXX XXX" readonly></div><button class="btn primary full" id="transferred">✓ Ya transferí</button>`);
- $("#transferred").onclick=validateRecharge;
+
+function wa(p){return "https://wa.me/"+WA+"?text="+encodeURIComponent("Hola, quiero comprar "+p.name+" por "+money(p.price));}
+
+function render(){
+  let cats=["Todos",...new Set(products.map(p=>p.category).filter(Boolean))];
+  $("cats").innerHTML=cats.map(c=>`<button class="cat ${c===active?"active":""}" data-c="${esc(c)}">${esc(c)}</button>`).join("");
+  document.querySelectorAll(".cat").forEach(b=>b.onclick=()=>{active=b.dataset.c;render()});
+  let q=$("search").value.toLowerCase();
+  let list=products.filter(p=>(active==="Todos"||p.category===active)&&(`${p.name} ${p.short} ${p.category}`).toLowerCase().includes(q));
+  $("grid").innerHTML=list.map(p=>`<article class="card"><div>${p.image?`<img class="card-img" src="${p.image}" alt="${esc(p.name)}">`:`<div class="noimg">📦</div>`}</div><div class="body"><span class="tag">${esc(p.category)}</span>${p.featured?` <span class="tag">★ Destacado</span>`:""}<h3>${esc(p.name)}</h3><p>${esc(p.short||"Producto digital")}</p><div class="price">${money(p.price)} <small>${p.duration?"/ "+esc(p.duration):""}</small></div><a class="btn buy" href="${wa(p)}" target="_blank" rel="noopener">Comprar</a></div></article>`).join("");
+  $("empty").style.display=list.length?"none":"block";
 }
-function validateRecharge(){
- openModal(`<label>🏦 VALIDAR RECARGA</label><h2>Validar recarga</h2><p>Completa los datos y envía tu solicitud.</p><div class="field"><label>¿DESDE DÓNDE TRANSFERISTE?</label><select id="bank"><option>YAPE / BCP</option><option>OTRO BANCO</option></select></div><div class="field"><label>PRIMER NOMBRE DEL TITULAR</label><input id="holder" placeholder="Ingresa el dato"></div><div class="field"><label>MONTO EXACTO TRANSFERIDO EN SOLES (PEN)</label><input id="amount" type="number" min="3" step="0.01" placeholder="3.00"></div><div class="status">La recarga real debe ser confirmada por el sistema de pagos o por el administrador. Esta demo no inventa confirmaciones.</div><button class="btn primary full" id="sendValidation">Enviar para validación</button>`);
- $("#sendValidation").onclick=()=>{const a=Number($("#amount").value);if(a<3)return alert("El monto mínimo es S/ 3.00.");openModal(`<label>🟡 SOLICITUD ENVIADA</label><h2>Pago pendiente</h2><p>Tu solicitud de <b>${money(a)}</b> quedó registrada para validación.</p><div class="status">Estado: <b>En revisión</b><br>Cuando el pago sea confirmado, el saldo podrá acreditarse.</div><button class="btn dark full" id="closePending">Cerrar</button>`);$("#closePending").onclick=()=>$("#modal").classList.remove("show")}
+
+function renderAdmin(){
+  $("adminList").innerHTML=products.length?products.map(p=>`<div class="row"><img src="${p.image||""}" alt=""><div class="info"><b>${esc(p.name)}</b><br><small>${money(p.price)} · ${esc(p.duration||"sin duración")} · ${esc(p.category)} · ${p.published===false?"Oculto":"Publicado"}</small></div><button class="edit" onclick="editProduct('${p.id}')">Editar</button><button class="delete" onclick="removeProduct('${p.id}')">Eliminar</button></div>`).join(""):"<p class='note'>No has creado productos todavía.</p>";
 }
-$("#loginBtn").onclick=auth;$("#walletBtn").onclick=()=>user?showRecharge():auth();$("#rechargeBtn").onclick=()=>user?showRecharge():auth();$("#heroRecharge").onclick=()=>user?showRecharge():auth();
-$("#search").oninput=renderProducts;$("#close").onclick=()=>$("#modal").classList.remove("show");$("#modal").onclick=e=>{if(e.target.id==="modal")$("#modal").classList.remove("show")};
-$("#hamb").onclick=()=>{const n=$("#mainNav");n.style.display=n.style.display==="flex"?"none":"flex";n.style.flexDirection="column";n.style.position="absolute";n.style.top="65px";n.style.left="10px";n.style.right="10px";n.style.padding="12px";n.style.background="#0c0813";n.style.border="1px solid #2b1747";n.style.borderRadius="15px"};
-const wa=`https://wa.me/${STORE.whatsapp}?text=${encodeURIComponent("Hola Perro Flow, quiero información sobre sus servicios.")}`;$("#wa").href=wa;$("#footerWA").href=wa;$("#year").textContent=new Date().getFullYear();updateBalance();renderCats();renderProducts();
+
+async function isAdmin(){
+  const {data:{user}}=await sb.auth.getUser();
+  if(!user) return false;
+  const {data,error}=await sb.from("perfiles").select("rol").eq("identificación",user.id).maybeSingle();
+  return !error && data?.rol === "admin";
+}
+
+async function showAdmin(){
+  const ok=await isAdmin();
+  if(!ok){
+    alert("Debes iniciar sesión como administradora para usar este panel.");
+    location.hash="tienda";
+    return false;
+  }
+  $("admin").style.display="block";
+  await loadAdminProducts();
+  return true;
+}
+
+$("search").addEventListener("input",render);
+$("image").addEventListener("change",e=>{const f=e.target.files[0];if(!f)return;if(f.size>1500000){alert("La imagen debe pesar menos de 1.5 MB.");e.target.value="";return;}const r=new FileReader();r.onload=()=>{imageData=r.result;$("preview").src=imageData;$("previewBox").classList.remove("hidden")};r.readAsDataURL(f)});
+
+$("form").addEventListener("submit",async e=>{
+  e.preventDefault();
+  if(!(await isAdmin())){alert("No tienes permisos de administrador.");return;}
+  const payload={
+    sku:$("sku").value.trim()||null,
+    nombre:$("name").value.trim(),
+    precio:Number($("price").value),
+    duración:$("duration").value.trim()||null,
+    "ID de categoría":$("category").value||null,
+    disponibilidad:$("availability").value,
+    renovable:$("renewable").checked,
+    presentado:$("featured").checked,
+    "URL de la imagen":imageData||null,
+    descripción_corta:$("short").value.trim(),
+    descripción:$("full").value.trim()||null,
+    términos:$("terms").value.trim()||null,
+    publicado:$("published").checked
+  };
+  if(!payload["URL de la imagen"] && !editingId){alert("Sube una imagen del producto.");return;}
+  let result;
+  if(editingId){
+    if(!payload["URL de la imagen"]){
+      const old=products.find(p=>p.id===editingId); payload["URL de la imagen"]=old?.image||null;
+    }
+    result=await sb.from("productos").update(payload).eq("identificación",editingId);
+  }else{
+    result=await sb.from("productos").insert(payload);
+  }
+  if(result.error){alert("No se pudo guardar: "+result.error.message);return;}
+  alert("Producto guardado correctamente en Supabase.");
+  reset();
+  await loadAdminProducts();
+  await loadProducts();
+  location.hash="tienda";
+});
+
+function reset(){$("form").reset();editingId="";imageData="";$('previewBox').classList.add('hidden');$('save').textContent='Guardar y publicar';}
+window.editProduct=async id=>{if(!(await isAdmin()))return;const {data,error}=await sb.from("productos").select("*").eq("identificación",id).single();if(error){alert(error.message);return;}const p=toUi(data);editingId=p.id;$("id").value=p.id;$("sku").value=p.sku||"";$("name").value=p.name||"";$("price").value=p.price||0;$("duration").value=p.duration||"";$("category").value=p.categoryId||"";$("availability").value=p.availability||"En stock";$("renewable").checked=!!p.renewable;$("featured").checked=!!p.featured;$("short").value=p.short||"";$("full").value=p.full||"";$("terms").value=p.terms||"";$("published").checked=p.published!==false;imageData=p.image||"";if(imageData){$("preview").src=imageData;$("previewBox").classList.remove("hidden")};$("save").textContent="Guardar cambios";location.hash="admin";};
+window.removeProduct=async id=>{if(!(await isAdmin()))return;if(confirm("¿Eliminar este producto?")){const {error}=await sb.from("productos").delete().eq("identificación",id);if(error)alert(error.message);else{await loadAdminProducts();await loadProducts();}}};
+$("cancel").onclick=reset;
+$("waTop").href="https://wa.me/"+WA;
+
+(async()=>{await loadCategories();await loadProducts();$("admin").style.display="none";window.addEventListener("hashchange",()=>{if(location.hash==="#admin")showAdmin();});if(location.hash==="#admin")showAdmin();})();
