@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Perro Flow | Entretenimiento sin límites</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Pacifico&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="glow g1"></div><div class="glow g2"></div>
+
+<header class="nav">
+  <a class="logo" href="#inicio">
+    <div class="logo-dog">🐶</div>
+    <div><b>PERRO <i>FLOW</i></b><small>TU ENTRETENIMIENTO SIN LÍMITES</small></div>
+  </a>
+  <nav id="mainNav">
+    <a href="#inicio">Inicio</a><a href="#productos">Productos</a><a href="#recargas">Recargas</a><a href="#publicidades">Publicidades</a><a href="#como">Cómo comprar</a>
+  </nav>
+  <div class="nav-actions"><button class="icon-btn" id="searchBtn">⌕</button><button class="wallet-mini" id="walletBtn">💳 <span id="navBalance">S/ 0.00</span></button><button class="login-btn" id="loginBtn">Iniciar sesión</button></div>
+  <button class="hamb" id="hamb">☰</button>
+</header>
+
+<main id="inicio">
+<section class="hero shell">
+  <div class="hero-copy">
+    <div class="pill">🐶 BIENVENIDO A PERRO FLOW</div>
+    <h1>TU ENTRETENIMIENTO<br><span>SIN LÍMITES.</span></h1>
+    <p>Disfruta de tus servicios favoritos y administra tus compras desde un solo lugar.</p>
+    <div class="hero-buttons"><a class="btn primary" href="#productos">Ver catálogo →</a><button class="btn dark" id="heroRecharge">💳 Recargar saldo</button></div>
+    <div class="features"><span>⚡ Atención rápida</span><span>🛡️ Compra segura</span><span>💬 Soporte</span></div>
+  </div>
+  <div class="hero-art">
+    <div class="neon-ring"></div><div class="dog-card"><div class="crown">♛</div><div class="dog">🐶</div><strong>PERRO<br><em>FLOW</em></strong><small>GOOD SERIES<br>GOOD MOOD</small></div>
+    <div class="float-card f1">🔥 MÁS VENDIDO</div><div class="float-card f2">💜 PRECIOS ESPECIALES</div>
+  </div>
+</section>
+
+<section class="trust shell"><div>🎬 Catálogo digital</div><div>⚡ Entrega rápida</div><div>📱 Atención por WhatsApp</div><div>💰 Saldo y recargas</div></section>
+
+<section class="section shell" id="productos">
+  <div class="heading"><div><label>EXPLORA</label><h2>Productos destacados</h2><p>Elige un servicio y realiza tu pedido.</p></div><div class="search"><span>⌕</span><input id="search" placeholder="Buscar producto..."></div></div>
+  <div class="cats" id="cats"></div><div class="product-grid" id="products"></div>
+</section>
+
+<section class="recharge shell" id="recargas">
+  <div class="recharge-copy"><label>💜 TU BILLETERA</label><h2>Recarga automática</h2><p>Recarga desde <b>S/ 3.00</b>, valida tu transferencia y usa tu saldo para comprar dentro de Perro Flow.</p><button class="btn primary" id="rechargeBtn">Recargar ahora →</button></div>
+  <div class="balance-card"><span>Saldo disponible</span><strong id="bigBalance">S/ 0.00</strong><small>Tu saldo aparecerá aquí al iniciar sesión.</small></div>
+</section>
+
+<section class="section shell" id="publicidades">
+  <div class="heading"><div><label>📢 PARA COMPARTIR</label><h2>Publicidades Perro Flow</h2><p>Descarga diseños sin precios, coloca el precio que quieras y compártelos en tus estados.</p></div></div>
+  <div class="ads-grid">
+    <article class="ad-card"><div class="ad-img"><img src="publicidad_spotify.png" alt="Publicidad Spotify para compartir"><span>LISTA PARA EDITAR</span></div><div class="ad-foot"><div><b>Spotify Premium</b><small>Formato ideal para estados</small></div><a class="download" href="publicidad_spotify.png" download="PerroFlow-Spotify.png">⬇ Descargar</a></div></article>
+    <article class="ad-card blank"><div class="blank-inner">🐶<b>NUEVAS PUBLICIDADES</b><small>Próximamente más diseños sin precio.</small></div><div class="ad-foot"><div><b>Biblioteca Perro Flow</b><small>Descarga y personaliza</small></div></div></article>
+  </div>
+</section>
+
+<section class="section shell" id="como">
+  <div class="heading center"><div><label>SENCILLO</label><h2>¿Cómo comprar?</h2><p>En pocos pasos tendrás tu pedido.</p></div></div>
+  <div class="steps"><article><b>01</b><span>🛍️</span><h3>Elige</h3><p>Selecciona el servicio que deseas.</p></article><article><b>02</b><span>💳</span><h3>Recarga</h3><p>Agrega saldo desde S/ 3.00.</p></article><article><b>03</b><span>✓</span><h3>Compra</h3><p>Usa tu saldo para realizar el pedido.</p></article><article><b>04</b><span>🚀</span><h3>Recibe</h3><p>Obtén la información de tu servicio.</p></article></div>
+</section>
+</main>
+
+<footer><div class="shell footer"><div class="logo"><div class="logo-dog">🐶</div><div><b>PERRO <i>FLOW</i></b><small>TU ENTRETENIMIENTO SIN LÍMITES</small></div></div><div>© <span id="year"></span> Perro Flow</div><a href="#" id="footerWA">💬 Contacto</a></div></footer>
+<a class="wa" id="wa" href="#" target="_blank">◔</a>
+
+<div class="modal" id="modal"><div class="modal-box"><button class="close" id="close">×</button><div id="modalContent"></div></div></div>
+<script src="app.js"></script>
+</body></html>
