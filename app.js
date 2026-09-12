@@ -79,8 +79,8 @@ function renderAdmin(){
 async function isAdmin(){
   const {data:{user}}=await sb.auth.getUser();
   if(!user) return false;
-  const {data,error}=await sb.from("perfiles").select("rol").eq("identificación",user.id).maybeSingle();
-  return !error && data?.rol === "admin";
+  const {data,error}=await sb.from("profiles").select("role").eq("id",user.id).maybeSingle();
+  return !error && data?.role === "admin";
 }
 
 async function showAdmin(){
